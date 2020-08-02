@@ -1,0 +1,26 @@
+{
+    "StackName": "candd-Route53RecordSet",
+    "Parameters": [
+        {
+            "ParameterKey": "MyHostedZoneId",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "Route53BaseDomainName",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "Route53SubDomainName",
+            "ParameterValue": ""
+        }
+    ],
+    "Capabilities": [
+        "CAPABILITY_NAMED_IAM"
+    ],
+    "Tags": [
+        {
+            "Key": "Sample",
+            "Value": "candd"
+        }
+    ]
+}

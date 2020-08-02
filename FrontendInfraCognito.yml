@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Create Cognito parts of infrastructure"
+Parameters:
+  MyUserPoolName:
+    Type: String
+  MyAppClientName:
+    Type: String
+Resources:
+  DashBoardUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties: 
+      UserPoolName: !Ref MyUserPoolName
+      UsernameConfiguration:
+        CaseSensitive: False
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Required: true
+        - AttributeDataType: Number
+          Name: adminuser
+          NumberAttributeConstraints:
+            MaxValue: 1
+            MinValue: 0
+        - AttributeDataType: String
+          Name: username
+        - AttributeDataType: String
+          Name: subtenantid
+  DashBoardUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Ref MyAppClientName
+      GenerateSecret: false
+      RefreshTokenValidity: 30
+      UserPoolId: !Ref DashBoardUserPool
+      PreventUserExistenceErrors: ENABLED
+      ExplicitAuthFlows:
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      ReadAttributes:
+        - email
+        - custom:adminuser
+        - custom:username
+        - custom:subtenantid
+      WriteAttributes:
+        - email
+        - custom:adminuser
+        - custom:username
+        - custom:subtenantid
+Outputs:
+  UserPool:
+    Value: !Ref DashBoardUserPool
+  UserPoolClient:
+    Value: !Ref DashBoardUserPoolClient

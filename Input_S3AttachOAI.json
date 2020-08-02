@@ -1,0 +1,22 @@
+{
+    "StackName": "candd-AttachOAI",
+    "Parameters": [
+        {
+            "ParameterKey": "MyOAIDistributionID",
+            "ParameterValue": ""
+        },
+        {
+            "ParameterKey": "AttachOAIS3Backet",
+            "ParameterValue": ""
+        }
+    ],
+    "Capabilities": [
+        "CAPABILITY_NAMED_IAM"
+    ],
+    "Tags": [
+        {
+            "Key": "Sample",
+            "Value": "candd"
+        }
+    ]
+}

@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Attach S3 backet policy to Cognito OAI"
+Parameters:
+  MyOAIDistributionID:
+    Type: String
+  AttachOAIS3Backet:
+    Type: String
+Resources:
+  AttachOAIPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref AttachOAIS3Backet
+      PolicyDocument: 
+        Statement: 
+          - 
+            Action: 
+              - "s3:GetObject"
+            Effect: "Allow"
+            Resource: !Sub "arn:aws:s3:::${AttachOAIS3Backet}/*"
+            Principal: 
+              AWS: !Sub "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${MyOAIDistributionID}"
+

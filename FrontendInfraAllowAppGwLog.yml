@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Allow log from exitsts ApiGateway"
+Parameters:
+  ApiGwResourceId:
+    Type: String
+Resources:
+  IAMSample:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Description: "API Gateway allow log"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+      RoleName: !Sub allowapigw-role-${ApiGwResourceId}
+  AttachApiGwLogRole:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn: !Sub "${IAMSample.Arn}"
+  EnableApiGwLogging:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId: !Ref ApiGwResourceId
+      StageName: Prod
+      StageDescription:
+        DataTraceEnabled: true
+        LoggingLevel: INFO
+        MetricsEnabled: true

@@ -1,0 +1,26 @@
+{
+    "StackName": "candd-CloudFront",
+    "Parameters": [
+        {
+            "ParameterKey": "FrontendS3Backet",
+            "ParameterValue": "aws-codestar-ap-northeast-1-504534391617-insole-demo-app"
+        },
+        {
+            "ParameterKey": "BackEndDomainName",
+            "ParameterValue": "wqk6b1w8o4.execute-api.ap-northeast-1.amazonaws.com"
+        },
+        {
+            "ParameterKey": "CloudFrontLogBacketName",
+            "ParameterValue": "candd-cloudfront-log"
+        }
+    ],
+    "Capabilities": [
+        "CAPABILITY_NAMED_IAM"
+    ],
+    "Tags": [
+        {
+            "Key": "Sample",
+            "Value": "candd"
+        }
+    ]
+}

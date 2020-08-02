@@ -1,0 +1,18 @@
+{
+    "StackName": "candd-APIGWLog",
+    "Parameters": [
+        {
+            "ParameterKey": "ApiGwResourceId",
+            "ParameterValue": ""
+        }
+    ],
+    "Capabilities": [
+        "CAPABILITY_NAMED_IAM"
+    ],
+    "Tags": [
+        {
+            "Key": "Sample",
+            "Value": "candd"
+        }
+    ]
+}

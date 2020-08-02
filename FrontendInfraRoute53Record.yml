@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Add Route53 record set (CloudFront Alias record)"
+Parameters:
+  # Route53
+  MyHostedZoneId:
+    Type: String
+  Route53BaseDomainName:
+    Type: String
+  Route53SubDomainName:
+    Type: String
+Resources:
+  # Route53 access to CloudFront
+  PublicDomainRecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Comment: "CloudFront distribution alias record set"
+      HostedZoneId: !Ref MyHostedZoneId
+      Name: !Sub ${Route53SubDomainName}.${Route53BaseDomainName}
+      Type: A
+      AliasTarget:
+        DNSName: !Sub ${CloudFrontDashBoard.DomainName}
+        HostedZoneId: Z2FDTNDATAQYW2

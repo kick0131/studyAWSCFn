@@ -1,0 +1,22 @@
+{
+    "StackName": "candd-Cognito",
+    "Parameters": [
+        {
+            "ParameterKey": "MyUserPoolName",
+            "ParameterValue": "candd-userpool"
+        },
+        {
+            "ParameterKey": "MyAppClientName",
+            "ParameterValue": "candd-cognito-appclient"
+        }
+    ],
+    "Capabilities": [
+        "CAPABILITY_NAMED_IAM"
+    ],
+    "Tags": [
+        {
+            "Key": "Sample",
+            "Value": "candd"
+        }
+    ]
+}

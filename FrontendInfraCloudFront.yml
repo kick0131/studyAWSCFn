@@ -1,0 +1,105 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "AWS CloudFormation Template dashboard infrastructure"
+Parameters:
+  # CloudFront
+  FrontendS3Backet:
+    Type: String
+  BackEndDomainName:
+    Type: String
+  CloudFrontLogBacketName:
+    Type: String
+Resources:
+  CloudFrontDashBoard:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: "true"
+        Comment: "For DashBoard"
+        Origins:
+          # access to S3
+          - Id: frontend
+            DomainName: !Sub ${FrontendS3Backet}.s3.amazonaws.com
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${MyOriginAccessIdentity}"
+          # access to API Gateway
+          - Id: backend
+            DomainName: !Ref BackEndDomainName
+            CustomOriginConfig:
+              OriginProtocolPolicy: http-only
+            OriginCustomHeaders:
+              - HeaderName: AllowDashboard
+                HeaderValue: true
+        DefaultCacheBehavior:
+          ForwardedValues:
+            QueryString: "false"
+          TargetOriginId: frontend
+          ViewerProtocolPolicy: allow-all
+        CacheBehaviors:
+        - AllowedMethods:
+          - DELETE
+          - GET
+          - HEAD
+          - OPTIONS
+          - PATCH
+          - POST
+          - PUT
+          ForwardedValues:
+            QueryString: "false"
+          TargetOriginId: backend
+          ViewerProtocolPolicy: allow-all
+          PathPattern: "Prod/*"
+        Logging:
+            Bucket: !Sub "${CloudFrontLogBucket}.s3.amazonaws.com"
+            IncludeCookies: false
+            Prefix: AWSLogs
+    DependsOn: CloudFrontLogBucket
+  # S3
+  CloudFrontLogBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref CloudFrontLogBacketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+      LifecycleConfiguration:
+        Rules:
+          - Id: !Sub ${CloudFrontLogBacketName}-Rule-001
+            Status: Enabled
+            ExpirationInDays: 365
+  CloudFrontLogBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: CloudFrontLogBucket
+      PolicyDocument:
+        Statement:
+          - Action: 
+            - s3:GetBucketAcl
+            - s3:ListBucket
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Resource: !Sub "${CloudFrontLogBucket.Arn}"
+          - Action: s3:PutObject
+            Condition:
+              StringEquals:
+                s3:x-amz-acl: bucket-owner-full-control
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Resource: !Sub "${CloudFrontLogBucket.Arn}/AWSLogs/${AWS::AccountId}/*"
+  # OAI
+  MyOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: "This is DashBoardOAI"
+Outputs:
+  # CloudFrontDomainName:
+  #   Description: The Domain of the dashboard cloudfront
+  #   Value: !Sub ${CloudFrontDashBoard.DomainName}
+  OriginAcessIdentityNumber:
+    Description: OAI Destoribution ID
+    Value: !Ref MyOriginAccessIdentity
