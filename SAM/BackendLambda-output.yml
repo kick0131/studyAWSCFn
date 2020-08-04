@@ -23,11 +23,17 @@ Resources:
       CloudWatchRoleArn:
         Fn::Sub: ${ApiGwAllowLogRole.Arn}
   SimpleGateway:
-    Type: AWS::ApiGateway::RestApi
+    Type: AWS::Serverless::Api
     Properties:
-      BinaryMediaTypes:
-      - application/json
+      StageName: Prod
       Name: SimpleGateway
+      MethodSettings:
+      - DataTraceEnabled: true
+        MetricsEnabled: false
+        HttpMethod: '*'
+        LoggingLevel: INFO
+        ResourcePath: /*
+    DependsOn: AttachApiGwCloudWatchRole
   SimpleApiFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -43,15 +49,4 @@ Resources:
             Method: get
             RestApiId:
               Ref: SimpleGateway
-      CodeUri: s3://candd/613371071824881b9455dcc07c5503bb
-  EnableApiGatewayLogging:
-    Type: AWS::ApiGateway::Deployment
-    DependsOn: SimpleGateway
-    Properties:
-      RestApiId:
-        Ref: SimpleGateway
-      StageName: Prod
-      StageDescription:
-        DataTraceEnabled: true
-        LoggingLevel: INFO
-        MetricsEnabled: false
+      CodeUri: s3://candd/9d639ab53dc4e5e1bc847b7323b7e3b9

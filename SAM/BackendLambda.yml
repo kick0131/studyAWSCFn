@@ -2,6 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Simple web api template from SAM.
 Resources:
+  # for API Gateway Log
   ApiGwAllowLogRole:
     Type: AWS::IAM::Role
     Properties: 
@@ -21,20 +22,17 @@ Resources:
     Type: AWS::ApiGateway::Account
     Properties: 
       CloudWatchRoleArn: !Sub ${ApiGwAllowLogRole.Arn}
+  # API Gateway
   SimpleGateway:
-# NG
-    # Type: AWS::ApiGateway::RestApi
-    # Properties: 
-    #   BinaryMediaTypes:
-    #     - 'application/json'
-    #   Name: 'SimpleGateway'
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
       Name: 'SimpleGateway'
+      # Logging
       MethodSettings:
         - DataTraceEnabled: true
-          HttpMethod: 'GET'
+          MetricsEnabled: false
+          HttpMethod: '*'
           LoggingLevel: 'INFO'
           ResourcePath: '/*'
     DependsOn: AttachApiGwCloudWatchRole
@@ -54,15 +52,3 @@ Resources:
             Path: /resource/helloworld
             Method: get
             RestApiId: !Ref SimpleGateway
-
-# NG
-  # EnableApiGatewayLogging:
-  #   Type: AWS::ApiGateway::Deployment
-  #   DependsOn: SimpleGateway
-  #   Properties:
-  #     RestApiId: !Ref SimpleGateway
-  #     StageName: Prod
-  #     StageDescription:
-  #       DataTraceEnabled: true
-  #       LoggingLevel: INFO
-  #       MetricsEnabled: false
