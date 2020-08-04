@@ -1,3 +1,4 @@
+# CFn
 ## All View
 - Route53
     - CloudFront
@@ -83,3 +84,26 @@ Add Cloudfront Origin Access Identity to S3 Backet policy.
 | AttachOAIS3Backet | \<backetname> |
 
 ---
+
+# SAM
+## All View
+- API Gateway
+    - Lambda
+- IAM
+
+## Usage
+change current directory
+`cd SAM`
+
+### Command
+Execute AWS CLI from Windows
+
+create stack-template
+```
+aws cloudformation package --template-file BackendLambda.yml --output-template-file BackendLambda-output.yml --s3-bucket <OutputResourceBacket> --profile <MyAWSProfile>
+```
+
+deploy
+```
+aws cloudformation deploy --template-file BackendLambda-output.yml --stack-name sample-backend --capabilities CAPABILITY_NAMED_IAM --profile <MyAWSProfile>
+```

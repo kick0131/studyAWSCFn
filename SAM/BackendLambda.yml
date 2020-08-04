@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Simple web api template from SAM.
+Resources:
+  ApiGwAllowLogRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - 'apigateway.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+      RoleName: candd-AmazonAPIGatewayPushToCloudWatchLogs
+  AttachApiGwCloudWatchRole:
+    Type: AWS::ApiGateway::Account
+    Properties: 
+      CloudWatchRoleArn: !Sub ${ApiGwAllowLogRole.Arn}
+  SimpleGateway:
+# NG
+    # Type: AWS::ApiGateway::RestApi
+    # Properties: 
+    #   BinaryMediaTypes:
+    #     - 'application/json'
+    #   Name: 'SimpleGateway'
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Name: 'SimpleGateway'
+      MethodSettings:
+        - DataTraceEnabled: true
+          HttpMethod: 'GET'
+          LoggingLevel: 'INFO'
+          ResourcePath: '/*'
+    DependsOn: AttachApiGwCloudWatchRole
+
+  # Lambda
+  SimpleApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: HelloWorld.lambda_handler
+      Runtime: python3.8
+      FunctionName: backendapi-created-sam
+      Policies: AWSLambdaExecute
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /resource/helloworld
+            Method: get
+            RestApiId: !Ref SimpleGateway
+
+# NG
+  # EnableApiGatewayLogging:
+  #   Type: AWS::ApiGateway::Deployment
+  #   DependsOn: SimpleGateway
+  #   Properties:
+  #     RestApiId: !Ref SimpleGateway
+  #     StageName: Prod
+  #     StageDescription:
+  #       DataTraceEnabled: true
+  #       LoggingLevel: INFO
+  #       MetricsEnabled: false
