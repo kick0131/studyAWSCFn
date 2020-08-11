@@ -49,4 +49,16 @@ Resources:
             Method: get
             RestApiId:
               Ref: SimpleGateway
-      CodeUri: s3://candd/9d639ab53dc4e5e1bc847b7323b7e3b9
+            RequestParameters:
+            - method.request.header.AllowApiGw:
+                Required: true
+                Caching: false
+      CodeUri: s3://candd/b0e28006b41198f281c70b025b2f41b4
+  SimpleApiValidator:
+    Type: AWS::ApiGateway::RequestValidator
+    Properties:
+      Name: SimpleApiValidator
+      RestApiId:
+        Ref: SimpleGateway
+      ValidateRequestBody: true
+      ValidateRequestParameters: true

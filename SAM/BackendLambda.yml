@@ -1,40 +1,40 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: Simple web api template from SAM.
 Resources:
   # for API Gateway Log
   ApiGwAllowLogRole:
     Type: AWS::IAM::Role
-    Properties: 
+    Properties:
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
               Service:
-              - 'apigateway.amazonaws.com'
+                - "apigateway.amazonaws.com"
             Action:
-              - 'sts:AssumeRole'
+              - "sts:AssumeRole"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
       RoleName: candd-AmazonAPIGatewayPushToCloudWatchLogs
   AttachApiGwCloudWatchRole:
     Type: AWS::ApiGateway::Account
-    Properties: 
+    Properties:
       CloudWatchRoleArn: !Sub ${ApiGwAllowLogRole.Arn}
   # API Gateway
   SimpleGateway:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
-      Name: 'SimpleGateway'
+      Name: "SimpleGateway"
       # Logging
       MethodSettings:
         - DataTraceEnabled: true
           MetricsEnabled: false
-          HttpMethod: '*'
-          LoggingLevel: 'INFO'
-          ResourcePath: '/*'
+          HttpMethod: "*"
+          LoggingLevel: "INFO"
+          ResourcePath: "/*"
     DependsOn: AttachApiGwCloudWatchRole
 
   # Lambda
@@ -52,3 +52,17 @@ Resources:
             Path: /resource/helloworld
             Method: get
             RestApiId: !Ref SimpleGateway
+            RequestParameters:
+              - method.request.header.AllowApiGw:
+                  Required: true
+                  Caching: false
+  # Enable Request Validation
+  # ToDo 有効にならない
+  SimpleApiValidator:
+    Type: AWS::ApiGateway::RequestValidator
+    Properties: 
+      Name: SimpleApiValidator
+      RestApiId: !Ref SimpleGateway
+      ValidateRequestBody: true
+      ValidateRequestParameters: true
+
