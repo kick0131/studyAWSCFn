@@ -1,6 +1,24 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Simple web api template from SAM.
+Parameters:
+  MyResourceArn:
+    Default: ''
+    Type: String
+  MyWebACLId:
+    Default: ''
+    Type: String
+Conditions:
+  isDefinedWAF:
+    Fn::And:
+    - Fn::Not:
+      - Fn::Equals:
+        - Ref: MyResourceArn
+        - ''
+    - Fn::Not:
+      - Fn::Equals:
+        - Ref: MyWebACLId
+        - ''
 Resources:
   ApiGwAllowLogRole:
     Type: AWS::IAM::Role
@@ -53,7 +71,7 @@ Resources:
             - method.request.header.AllowApiGw:
                 Required: true
                 Caching: false
-      CodeUri: s3://candd/b0e28006b41198f281c70b025b2f41b4
+      CodeUri: s3://candd/c1c9a687274fd3a65b6ef8cbaf18ad53
   SimpleApiValidator:
     Type: AWS::ApiGateway::RequestValidator
     Properties:
@@ -62,3 +80,11 @@ Resources:
         Ref: SimpleGateway
       ValidateRequestBody: true
       ValidateRequestParameters: true
+  AttachWAF:
+    Type: AWS::WAFRegional::WebACLAssociation
+    Condition: isDefinedWAF
+    Properties:
+      ResourceArn:
+        Ref: MyResourceArn
+      WebACLId:
+        Ref: MyWebACLId

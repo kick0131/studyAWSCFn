@@ -1,6 +1,15 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: Simple web api template from SAM.
+Parameters:
+  MyResourceArn:
+    Default: ""
+    Type: String
+  MyWebACLId:
+    Default: ""
+    Type: String
+Conditions:
+  isDefinedWAF: !And [ !Not [!Equals [!Ref MyResourceArn, ""]], !Not [!Equals [!Ref MyWebACLId, ""]]]
 Resources:
   # for API Gateway Log
   ApiGwAllowLogRole:
@@ -57,12 +66,19 @@ Resources:
                   Required: true
                   Caching: false
   # Enable Request Validation
-  # ToDo 有効にならない
+  ### ToDo not Activate ###
   SimpleApiValidator:
     Type: AWS::ApiGateway::RequestValidator
-    Properties: 
+    Properties:
       Name: SimpleApiValidator
       RestApiId: !Ref SimpleGateway
       ValidateRequestBody: true
       ValidateRequestParameters: true
 
+  # WAF
+  AttachWAF:
+    Type: AWS::WAFRegional::WebACLAssociation
+    Condition: isDefinedWAF
+    Properties:
+      ResourceArn: !Ref MyResourceArn
+      WebACLId: !Ref MyWebACLId
