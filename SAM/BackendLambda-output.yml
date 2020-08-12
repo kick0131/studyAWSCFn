@@ -3,10 +3,10 @@ Transform: AWS::Serverless-2016-10-31
 Description: Simple web api template from SAM.
 Parameters:
   MyResourceArn:
-    Default: ''
+    Default: arn:aws:cloudfront::504534391617:distribution/EIS2SPJ0UIEGX
     Type: String
   MyWebACLId:
-    Default: ''
+    Default: 7969db57-d0a7-41a4-bbda-d5841e736ec7
     Type: String
 Conditions:
   isDefinedWAF:
@@ -71,7 +71,7 @@ Resources:
             - method.request.header.AllowApiGw:
                 Required: true
                 Caching: false
-      CodeUri: s3://candd/c1c9a687274fd3a65b6ef8cbaf18ad53
+      CodeUri: s3://candd/2e57052f4561cd3b80015b33e948dbda
   SimpleApiValidator:
     Type: AWS::ApiGateway::RequestValidator
     Properties:
@@ -82,7 +82,6 @@ Resources:
       ValidateRequestParameters: true
   AttachWAF:
     Type: AWS::WAFRegional::WebACLAssociation
-    Condition: isDefinedWAF
     Properties:
       ResourceArn:
         Ref: MyResourceArn

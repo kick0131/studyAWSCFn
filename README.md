@@ -30,6 +30,11 @@ Execute AWS CLI from Windows
 aws cloudformation create-stack --template-body file://.\FrontendInfraCognito.yml --cli-input-json file://.\Input_Cognito.json --profile <MyAWSProfile> --no-verify
 ```
 
+Create Change set
+```
+aws cloudformation create-change-set --template-body file://.\FrontendInfraCloudFront.yml --cli-input-json file://.\Input_CloudFront.json --profile <MyAWSProfile> --no-verify --change-set-name <change set name>
+```
+
 ## Explanation
 ---
 ### FrontendInfraAllowAppGwLog.yml
