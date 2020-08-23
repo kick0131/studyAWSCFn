@@ -56,12 +56,15 @@ Resources:
               - method.request.header.AllowApiGw:
                   Required: true
                   Caching: false
-  # Enable Request Validation
-  ### ToDo not Activate ###
-  SimpleApiValidator:
-    Type: AWS::ApiGateway::RequestValidator
-    Properties:
-      Name: SimpleApiValidator
-      RestApiId: !Ref SimpleGateway
-      ValidateRequestBody: true
-      ValidateRequestParameters: true
+        PostResource:
+          Type: Api
+          Properties:
+            Path: /resource/post
+            Method: post
+            RestApiId: !Ref SimpleGateway
+  # Lambda LogGroup
+  SimpleApiFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: !Sub /aws/lambda/${SimpleApiFunction}
+      RetentionInDays: 365

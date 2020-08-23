@@ -1,2 +1,2 @@
 .vscode
-./SAM/BackendLambda-output.yml
+SAM/**-output.yml
