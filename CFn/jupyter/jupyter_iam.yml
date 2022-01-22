@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "IAM Role for ECS"
+Resources:
+  EcsExecuteWithEFSRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Description: "Allow execute ECS and attach EFS."
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonElasticFileSystemClientFullAccess
+      RoleName: "{{resolve:ssm:/jupyter/ServiceName}}-{{resolve:ssm:/jupyter/EcsRoleName}}"
+Outputs:
+  IamName:
+    Description: hoge
+    Value: !Ref EcsExecuteWithEFSRole

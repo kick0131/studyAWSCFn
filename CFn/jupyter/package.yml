@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Root template
+Parameters:
+  EcsRoleName:
+    Type: String
+    ConstraintDescription: role name
+    Default: ecs-execute
+  ServiceName:
+    Type: String
+    ConstraintDescription: service name
+    Default: jupyter
+Resources:
+  RoleNameParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /jupyter/EcsRoleName
+      Type: String
+      Value:
+        Ref: EcsRoleName
+  ServiceNameParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /jupyter/ServiceName
+      Type: String
+      Value:
+        Ref: ServiceName
+      Description: set prefix name at service group.
+  IamStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/some-cfn-package/jupyter/694de84ba7a6cc2a7f8c386bec69937d.template
+    DependsOn: ServiceNameParameter
+Outputs:
+  IamName:
+    Description: iam name
+    Value:
+      Fn::GetAtt:
+      - IamStack
+      - Outputs.IamName
+    Export:
+      Name: iam-name
