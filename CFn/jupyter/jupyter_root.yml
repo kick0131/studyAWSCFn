@@ -11,8 +11,22 @@ Parameters:
     Type: String
     ConstraintDescription: "service name"
     Default: jupyter
+  VPCID:
+    Type: String
+    ConstraintDescription: "vpcid"
+    Default: vpc-0886abb677f15301a
+  DefaultSecGroup:
+    Type: String
+    ConstraintDescription: "default security group id"
+    Default: sg-09b4d65064120bc8b
 Resources:
   # Environment(Systems Parameter)
+  VpcIdParameter:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: "/jupyter/VpcId"
+      Type: "String"
+      Value: !Ref VPCID
   RoleNameParameter:
     Type: "AWS::SSM::Parameter"
     Properties:
@@ -26,15 +40,45 @@ Resources:
       Type: "String"
       Value: !Ref ServiceName
       Description: "set prefix name at service group."
+  DefaultSecGroupParameter:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: "/jupyter/SecGroupId"
+      Type: "String"
+      Value: !Ref DefaultSecGroup
+      Description: "default security group id."
   # Create cloudFormation stack
+  SubnetStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./jupyter_subnet.yml
+    DependsOn: ServiceNameParameter
   IamStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ./jupyter_iam.yml
     DependsOn: ServiceNameParameter
+  SecGroupStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./jupyter_secgroup.yml
+    DependsOn: ServiceNameParameter
+  EcsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./jupyter_ecs.yml
+      Parameters:
+        ExeIamRoleArn: !GetAtt IamStack.Outputs.EcsExeRoleArn
+    DependsOn: IamStack
 Outputs:
  IamName:
     Description: iam name
     Value: !GetAtt IamStack.Outputs.IamName
     Export:
       Name: iam-name
+ SubnetName:
+    Description: subnet name
+    Value: !GetAtt SubnetStack.Outputs.SubnetName
+    Export:
+      Name: subnet-name
+

@@ -1,0 +1,105 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Elastic Container Service for jupyter"
+
+Parameters:
+  EcsVolumeName:
+    Type: String
+    ConstraintDescription: "volume name"
+    Default: ecs-volume
+  ExeIamRoleArn:
+    Type: String
+    ConstraintDescription: "ecs execute role arn"
+ 
+Resources:
+  # EcsCluster:
+  #   Type: AWS::ECS::Service
+  #   Properties:
+  #     Tags:
+  #       - Key: "Name"
+  #         Value: "{{resolve:ssm:/jupyter/ServiceName}}-subnet"
+  #     VpcId: "{{resolve:ssm:/jupyter/VpcId}}"
+
+  # ---------------------------------------------
+  EcsTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: "{{resolve:ssm:/jupyter/ServiceName}}-task"
+      NetworkMode: awsvpc
+      ExecutionRoleArn: !Ref ExeIamRoleArn
+      RequiresCompatibilities:
+        - "FARGATE"
+      # 0.25 vCPU
+      Cpu: 256
+      # 0.5 GB
+      Memory: 512
+      # -----------------
+      # Container Definition
+      # -----------------
+      ContainerDefinitions: 
+        - 
+          Name: "{{resolve:ssm:/jupyter/ServiceName}}-container"
+          MountPoints: 
+            - 
+              SourceVolume: !Ref EcsVolumeName
+              ContainerPath: "/home/jovyan/work"
+          Image: "jupyter/scipy-notebook:latest"
+          # if failed, container stop.
+          Essential: true
+          PortMappings:
+            - ContainerPort: 8888
+              HostPort: 8888
+          Environment:
+            - Name: "JUPYTER_ENABLE_LAB"
+              Value: "yes"
+          # Logging
+          LogConfiguration:
+            LogDriver: "awslogs"
+            Options: 
+              awslogs-group: !Ref AWS::StackName
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: "ecs"
+      # -----------------
+      # Volume Definition
+      # -----------------
+      Volumes: 
+        - 
+          Name: !Ref EcsVolumeName
+          EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId: "fsap-068f66155d9af3cf5"
+              IAM: "DISABLED"
+            FilesystemId: "fs-062d92f9c14942b33"
+            RootDirectory: "/"
+            TransitEncryption: "ENABLED"
+
+  # ---------------------------------------------
+  # EcsService:
+  #   Type: AWS::ECS::Service
+  #   Properties:
+  #     Role:
+  #       Ref: ECSServiceRole
+  #     TaskDefinition:
+  #       Ref: ECSTaskDefinition
+  #     DesiredCount: 1
+  #     LoadBalancers:
+  #     - TargetGroupArn:
+  #         Ref: TargetGroup
+  #       ContainerPort: 80
+  #       ContainerName: sample-app
+  #     Cluster:
+  #       Ref: ECSCluster
+  #     Tags:
+  #       - Key: "Name"
+  #         Value: "{{resolve:ssm:/jupyter/ServiceName}}-subnet"
+  #     VpcId: "{{resolve:ssm:/jupyter/VpcId}}"
+
+Outputs:
+  # EcsClusterLid:
+  #   Description: "ecs cluster logical id."
+  #   Value: !Ref EcsCluster
+  EcsTaskLid:
+    Description: "ecs task definition logical id."
+    Value: !Ref EcsTask
+  # EcsServiceLid:
+  #   Description: "ecs service logical id."
+  #   Value: !Ref EcsService

@@ -19,5 +19,8 @@ Resources:
       RoleName: "{{resolve:ssm:/jupyter/ServiceName}}-{{resolve:ssm:/jupyter/EcsRoleName}}"
 Outputs:
   IamName:
-    Description: hoge
+    Description: "iam logical id"
     Value: !Ref EcsExecuteWithEFSRole
+  EcsExeRoleArn:
+    Description: "Execution role arn"
+    Value: !GetAtt EcsExecuteWithEFSRole.Arn

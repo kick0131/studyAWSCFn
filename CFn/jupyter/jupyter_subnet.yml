@@ -1,0 +1,19 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Subnet for jupyter"
+
+
+Resources:
+  ServiceSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: "ap-northeast-1a"
+      CidrBlock: "10.1.10.0/24"
+      MapPublicIpOnLaunch: 'false'
+      Tags:
+        - Key: "Name"
+          Value: "{{resolve:ssm:/jupyter/ServiceName}}-subnet"
+      VpcId: "{{resolve:ssm:/jupyter/VpcId}}"
+Outputs:
+  SubnetName:
+    Description: "service area subnet."
+    Value: !Ref ServiceSubnet

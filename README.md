@@ -7,6 +7,11 @@
     ```
     after execute, write on `.aws/configure` and `.aws/credential`
 
+    - (確認) AWSプロファイル一覧
+    ```bash
+    aws configure list-profiles
+    ```
+
 ### use VsCode
 - add setting.json
     ```bash
@@ -43,6 +48,15 @@
         - 子スタックの呼び出し
     1. 子スタック起動
         - INPUTパラメータは全てSystems Parameterを使用する
+
+## Subnet
+
+| subnet | 用途 | 備考 |
+|-- |-- |-- |
+| 10.1.0.0/24| メインPublic | |
+| 10.1.2.0/24| メインPrivate | |
+| 10.1.10.0/24| jupyterコンテナ | |
+
 
 ## AWS CLI
 ```bash

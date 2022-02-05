@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Security Group for efs"
+
+
+Resources:
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "attach on EFS"
+      GroupName: "{{resolve:ssm:/jupyter/ServiceName}}-secgroup"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 2049
+          ToPort: 2049
+          SourceSecurityGroupId: "{{resolve:ssm:/jupyter/SecGroupId}}"
+          Description: "allow from EFS"
+        - IpProtocol: tcp
+          FromPort: 8888
+          ToPort: 8888
+          CidrIp: 0.0.0.0/0
+          Description: "allow http access to jupyter"
+        # - IpProtocol: tcp
+        #   FromPort: 80
+        #   ToPort: 80
+        #   CidrIp: 0.0.0.0/0
+        #   Description: "allow http access to jupyter"
+      Tags:
+        - Key: "Name"
+          Value: "{{resolve:ssm:/jupyter/ServiceName}}-secgroup"
+      VpcId: "{{resolve:ssm:/jupyter/VpcId}}"
+Outputs:
+  SecGroupName:
+    Description: "logical id attached on EFS."
+    Value: !Ref SecurityGroup
