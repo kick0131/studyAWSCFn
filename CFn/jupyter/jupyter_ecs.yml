@@ -9,15 +9,27 @@ Parameters:
   ExeIamRoleArn:
     Type: String
     ConstraintDescription: "ecs execute role arn"
- 
 Resources:
-  # EcsCluster:
-  #   Type: AWS::ECS::Service
-  #   Properties:
-  #     Tags:
-  #       - Key: "Name"
-  #         Value: "{{resolve:ssm:/jupyter/ServiceName}}-subnet"
-  #     VpcId: "{{resolve:ssm:/jupyter/VpcId}}"
+  ECSLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: '/ecs/logs/{{resolve:ssm:/jupyter/ServiceName}}-tasklog' 
+  # ---------------------------------------------
+  EcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: "{{resolve:ssm:/jupyter/ServiceName}}-cluster"
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: FARGATE
+          Weight: 1
+        - CapacityProvider: FARGATE_SPOT
+          Weight: 1
+      Tags:
+        - Key: "Name"
+          Value: "{{resolve:ssm:/jupyter/ServiceName}}-cluster"
 
   # ---------------------------------------------
   EcsTask:
@@ -55,7 +67,7 @@ Resources:
           LogConfiguration:
             LogDriver: "awslogs"
             Options: 
-              awslogs-group: !Ref AWS::StackName
+              awslogs-group: "/ecs/logs/{{resolve:ssm:/jupyter/ServiceName}}-tasklog"
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: "ecs"
       # -----------------
@@ -71,35 +83,35 @@ Resources:
             FilesystemId: "fs-062d92f9c14942b33"
             RootDirectory: "/"
             TransitEncryption: "ENABLED"
+    DependsOn: EcsCluster
 
   # ---------------------------------------------
-  # EcsService:
-  #   Type: AWS::ECS::Service
-  #   Properties:
-  #     Role:
-  #       Ref: ECSServiceRole
-  #     TaskDefinition:
-  #       Ref: ECSTaskDefinition
-  #     DesiredCount: 1
-  #     LoadBalancers:
-  #     - TargetGroupArn:
-  #         Ref: TargetGroup
-  #       ContainerPort: 80
-  #       ContainerName: sample-app
-  #     Cluster:
-  #       Ref: ECSCluster
-  #     Tags:
-  #       - Key: "Name"
-  #         Value: "{{resolve:ssm:/jupyter/ServiceName}}-subnet"
-  #     VpcId: "{{resolve:ssm:/jupyter/VpcId}}"
-
+  EcsService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref EcsCluster
+      TaskDefinition: !Ref EcsTask
+      SchedulingStrategy: "REPLICA"
+      LaunchType: "FARGATE"
+      # Role: !Ref "{{resolve:ssm:/jupyter/EcsServiceRole}}"
+      # Role: "arn:aws:iam::504534391617:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS"
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: "ENABLED"
+          SecurityGroups:
+            - "sg-07de46db21d286d2c"
+            - "sg-09b4d65064120bc8b"
+          Subnets:
+            - "subnet-03c00cf40b16d39bf"
+    DependsOn: EcsTask
 Outputs:
-  # EcsClusterLid:
-  #   Description: "ecs cluster logical id."
-  #   Value: !Ref EcsCluster
+  EcsClusterLid:
+    Description: "ecs cluster logical id."
+    Value: !Ref EcsCluster
   EcsTaskLid:
     Description: "ecs task definition logical id."
     Value: !Ref EcsTask
-  # EcsServiceLid:
-  #   Description: "ecs service logical id."
-  #   Value: !Ref EcsService
+  EcsServiceLid:
+    Description: "ecs service logical id."
+    Value: !Ref EcsService

@@ -16,7 +16,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
         - arn:aws:iam::aws:policy/AmazonElasticFileSystemClientFullAccess
-      RoleName: "{{resolve:ssm:/jupyter/ServiceName}}-{{resolve:ssm:/jupyter/EcsRoleName}}"
+      RoleName: "{{resolve:ssm:/jupyter/ServiceName}}-ecs-execute"
 Outputs:
   IamName:
     Description: "iam logical id"

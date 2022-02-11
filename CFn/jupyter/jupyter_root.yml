@@ -3,22 +3,23 @@ Description: "Root template"
 
 Parameters:
   # Input Value
-  EcsRoleName:
-    Type: String
-    ConstraintDescription: "role name"
-    Default: ecs-execute
-  ServiceName:
-    Type: String
-    ConstraintDescription: "service name"
-    Default: jupyter
   VPCID:
     Type: String
     ConstraintDescription: "vpcid"
     Default: vpc-0886abb677f15301a
+  ServiceName:
+    Type: String
+    ConstraintDescription: "service name"
+    Default: jupyter
   DefaultSecGroup:
     Type: String
     ConstraintDescription: "default security group id"
     Default: sg-09b4d65064120bc8b
+  EcsServiceRoleArn:
+    Type: String
+    ConstraintDescription: "ecs service role"
+    Default : arn:aws:iam::504534391617:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS
+
 Resources:
   # Environment(Systems Parameter)
   VpcIdParameter:
@@ -27,12 +28,6 @@ Resources:
       Name: "/jupyter/VpcId"
       Type: "String"
       Value: !Ref VPCID
-  RoleNameParameter:
-    Type: "AWS::SSM::Parameter"
-    Properties:
-      Name: "/jupyter/EcsRoleName"
-      Type: "String"
-      Value: !Ref EcsRoleName
   ServiceNameParameter:
     Type: "AWS::SSM::Parameter"
     Properties:
@@ -47,6 +42,13 @@ Resources:
       Type: "String"
       Value: !Ref DefaultSecGroup
       Description: "default security group id."
+  EcsServiceRoleParameter:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: "/jupyter/EcsServiceRole"
+      Type: "String"
+      Value: !Ref EcsServiceRoleArn
+      Description: "ecs service role."
   # Create cloudFormation stack
   SubnetStack:
     Type: AWS::CloudFormation::Stack
@@ -81,4 +83,3 @@ Outputs:
     Value: !GetAtt SubnetStack.Outputs.SubnetName
     Export:
       Name: subnet-name
-
