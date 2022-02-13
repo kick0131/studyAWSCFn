@@ -19,6 +19,14 @@ Parameters:
     Type: String
     ConstraintDescription: "ecs service role"
     Default : arn:aws:iam::504534391617:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS
+  FileSystemId:
+    Type: String
+    ConstraintDescription: "attach efs id"
+    Default : fs-062d92f9c14942b33
+  FileSystemAccessPoint:
+    Type: String
+    ConstraintDescription: "attach efs access point id"
+    Default : fsap-068f66155d9af3cf5
 
 Resources:
   # Environment(Systems Parameter)
@@ -38,7 +46,7 @@ Resources:
   DefaultSecGroupParameter:
     Type: "AWS::SSM::Parameter"
     Properties:
-      Name: "/jupyter/SecGroupId"
+      Name: "/jupyter/DefaultSecGroup"
       Type: "String"
       Value: !Ref DefaultSecGroup
       Description: "default security group id."
@@ -49,6 +57,21 @@ Resources:
       Type: "String"
       Value: !Ref EcsServiceRoleArn
       Description: "ecs service role."
+  FileSystemIdParameter:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: "/jupyter/FileSystemId"
+      Type: "String"
+      Value: !Ref FileSystemId
+      Description: "filesystem id."
+  FileSystemApParameter:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: "/jupyter/FileSystemAp"
+      Type: "String"
+      Value: !Ref FileSystemAccessPoint
+      Description: "filesystem access point."
+
   # Create cloudFormation stack
   SubnetStack:
     Type: AWS::CloudFormation::Stack
@@ -64,14 +87,16 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ./jupyter_secgroup.yml
-    DependsOn: ServiceNameParameter
+    DependsOn: IamStack
   EcsStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ./jupyter_ecs.yml
       Parameters:
         ExeIamRoleArn: !GetAtt IamStack.Outputs.EcsExeRoleArn
-    DependsOn: IamStack
+        JupyterSecGroup: !GetAtt SecGroupStack.Outputs.JupyterSecGroup
+        JupyterSubnet: !GetAtt SubnetStack.Outputs.JupyterSubnet
+    DependsOn: SecGroupStack
 Outputs:
  IamName:
     Description: iam name
@@ -80,6 +105,6 @@ Outputs:
       Name: iam-name
  SubnetName:
     Description: subnet name
-    Value: !GetAtt SubnetStack.Outputs.SubnetName
+    Value: !GetAtt SubnetStack.Outputs.JupyterSubnet
     Export:
       Name: subnet-name

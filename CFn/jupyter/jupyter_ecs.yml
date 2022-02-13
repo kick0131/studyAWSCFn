@@ -9,6 +9,12 @@ Parameters:
   ExeIamRoleArn:
     Type: String
     ConstraintDescription: "ecs execute role arn"
+  JupyterSecGroup:
+    Type: String
+    ConstraintDescription: "jupyter security group"
+  JupyterSubnet:
+    Type: String
+    ConstraintDescription: "subnet on jupyter"
 Resources:
   ECSLogGroup:
     Type: AWS::Logs::LogGroup
@@ -72,15 +78,16 @@ Resources:
               awslogs-stream-prefix: "ecs"
       # -----------------
       # Volume Definition
+      # Use an aleadey created EFS.
       # -----------------
       Volumes: 
         - 
           Name: !Ref EcsVolumeName
           EFSVolumeConfiguration:
             AuthorizationConfig:
-              AccessPointId: "fsap-068f66155d9af3cf5"
+              AccessPointId: "{{resolve:ssm:/jupyter/FileSystemAp}}"
               IAM: "DISABLED"
-            FilesystemId: "fs-062d92f9c14942b33"
+            FilesystemId: "{{resolve:ssm:/jupyter/FileSystemId}}"
             RootDirectory: "/"
             TransitEncryption: "ENABLED"
     DependsOn: EcsCluster
@@ -93,17 +100,15 @@ Resources:
       TaskDefinition: !Ref EcsTask
       SchedulingStrategy: "REPLICA"
       LaunchType: "FARGATE"
-      # Role: !Ref "{{resolve:ssm:/jupyter/EcsServiceRole}}"
-      # Role: "arn:aws:iam::504534391617:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS"
       DesiredCount: 1
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: "ENABLED"
           SecurityGroups:
-            - "sg-07de46db21d286d2c"
-            - "sg-09b4d65064120bc8b"
+            - "{{resolve:ssm:/jupyter/DefaultSecGroup}}"
+            - !Ref JupyterSecGroup
           Subnets:
-            - "subnet-03c00cf40b16d39bf"
+            - !Ref JupyterSubnet
     DependsOn: EcsTask
 Outputs:
   EcsClusterLid:

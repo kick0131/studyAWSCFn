@@ -12,23 +12,18 @@ Resources:
         - IpProtocol: tcp
           FromPort: 2049
           ToPort: 2049
-          SourceSecurityGroupId: "{{resolve:ssm:/jupyter/SecGroupId}}"
+          SourceSecurityGroupId: "{{resolve:ssm:/jupyter/DefaultSecGroup}}"
           Description: "allow from EFS"
         - IpProtocol: tcp
           FromPort: 8888
           ToPort: 8888
           CidrIp: 0.0.0.0/0
           Description: "allow http access to jupyter"
-        # - IpProtocol: tcp
-        #   FromPort: 80
-        #   ToPort: 80
-        #   CidrIp: 0.0.0.0/0
-        #   Description: "allow http access to jupyter"
       Tags:
         - Key: "Name"
           Value: "{{resolve:ssm:/jupyter/ServiceName}}-secgroup"
       VpcId: "{{resolve:ssm:/jupyter/VpcId}}"
 Outputs:
-  SecGroupName:
-    Description: "logical id attached on EFS."
+  JupyterSecGroup:
+    Description: "for jupyter on ecs container"
     Value: !Ref SecurityGroup
