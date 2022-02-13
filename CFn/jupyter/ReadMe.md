@@ -29,24 +29,30 @@
   |  +---------------------+ |
   +--------------------------+
 ```
+このテンプレートでできる事
+- 指定したVPC内にサブネットを作成し、その中にFargateでjupyterコンテナを立ち上げます
+- workディレクトリにEFSをアタッチし、テンプレート停止後もデータを残します(EFSは事前に作成)
+- 起動に必要なセキュリティグループとIAMロールはテンプレートで作成します
+
 
 ## Create on template
 - Subnet
 - Security Group
 - ECS Task
 - ECS Service
-- EFS
 - IAM Role
 - IAM Policy
 
 ## Not create on template
 - VPC
 - IPv6
+- EFS
 
 ## Prepare
-
-CFn用にS3バケットを作成する
-- some-cfn-package
+- CFn用にS3バケットを作成する
+  - some-cfn-package
+- jupyter環境を作成するVPCを事前に作成する
+- jupyterデータの永続化領域としてEFSを作成する
 
 
 ## Usage
