@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudWatch'
+
+Parameters:
+  ServiceName:
+    Type: String
+    ConstraintDescription: "service name"
+    Default: jupyter
+  LambdaArn:
+    Type: 'String'
+    ConstraintDescription: "lambda when cloudwatch event triggered"
+  SnsArn:
+    Type: 'String'
+    ConstraintDescription: "sns when alert occured"
+  S3Bucket:
+    Type: 'String'
+    ConstraintDescription: "cloudwatch check target"
+
+Resources:
+  #-----------------------------------------------------------
+  # CloudWatchEvent
+  #-----------------------------------------------------------
+  LambdaBatchEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub ${ServiceName}-cloudwatch-rule-batch
+      ScheduleExpression: 'cron(0 1 * * * *)'
+      State: ENABLED
+      Targets:
+         -
+          Id: !Sub ${ServiceName}-lambda-batch
+          Arn: !Ref LambdaArn
+  GurdDutyEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub ${ServiceName}-guardduty-alert
+      EventPattern:
+        source:
+          - aws.guardduty
+        detail-type:
+          - 'GurdDuty Finding'
+      State: ENABLED
+      Targets:
+         -
+          Id: !Sub ${ServiceName}-guardduty-alert
+          Arn: !Ref SnsArn
+  #-----------------------------------------------------------
+  # CloudWatchAlerm - Lambda
+  #-----------------------------------------------------------
+  LambdaConcurrenErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions: 
+         - !Ref SnsArn
+      AlarmName: !Sub ${ServiceName}-cloudwatch-alarm-lambda-errors
+      ComparisonOperator: GreaterThanThreshold
+      Statistic: Sum
+      EvaluationPeriods: 1
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Period: 300
+      Threshold: 0
+      TreatMissingData: notBreaching
+  LambdaConcurrentExecutionsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions: 
+         - !Ref SnsArn
+      AlarmName: !Sub ${ServiceName}-cloudwatch-alarm-lambda-concurrentexecutions
+      ComparisonOperator: GreaterThanThreshold
+      Statistic: Maximum
+      EvaluationPeriods: 1
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Period: 300
+      Threshold: 900
+      TreatMissingData: notBreaching
+  #-----------------------------------------------------------
+  # CloudWatchAlerm - S3
+  #-----------------------------------------------------------
+  S3logs35xxErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref SnsArn
+      AlarmName: !Sub ${ServiceName}-cloudwatch-alarm-s3-5xxerror
+      ComparisonOperator: GreaterThanThreshold
+      Statistic: Sum
+      EvaluationPeriods: 1
+      MetricName: 5xxErrors
+      Namespace: AWS/S3
+      Dimensions:
+        - Name: BucketName
+          Value: !Ref S3Bucket
+        - Name: FilterId
+          # ToDo
+          Value: !Sub ${S3Bucket}-log
+      Period: 300
+      Threshold: 0
+      TreatMissingData: notBreaching
+
+Outputs:
+   LambdaBatchEventRule:
+    Value: !Ref  LambdaBatchEventRule
+    Export:
+      Name: !Sub ${ServiceName}-lambda-batch
+   GurdDutyEventRule:
+    Value: !Ref GurdDutyEventRule
+    Export:
+      Name: !Sub ${ServiceName}-guardduty-alert
+

@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudTrail'
+
+Parameters:
+  ServiceName:
+    Type: String
+    ConstraintDescription: "service name"
+    Default: jupyter
+  CloudTrailBucket:
+    Type: String
+    ConstraintDescription: "S3 bucket name"
+
+Resources:
+  CloudTrail:
+    Type: AWS::CloudTrail::Trail
+    Properties: 
+      EnableLogFileValidation: true
+      IncludeGlobalServiceEvents: true
+      IsLogging: true
+      IsMultiRegionTrail: true
+      S3BucketName: !Ref  CloudTrailBucket
+      TrailName: !Sub ${ServiceName}-cloudtrail
