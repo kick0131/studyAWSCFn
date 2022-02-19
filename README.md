@@ -65,6 +65,9 @@ aws cloudformation list-stacks --profile <profile name>
 
 # チェンジセット削除
 aws cloudformation delete-change-set --change-set-name <change set name> --stack-name <stack name> --profile <profile name>
+
+# デプロイ
+aws cloudformation deploy --template-file xxx.yml --stack-name xxx --profile <profile name>
 ```
 
 ## 参考サイト

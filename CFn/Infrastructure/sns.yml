@@ -1,0 +1,9 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: SNS Sample Stack
+
+Resources:
+  # 宛先メールアドレスは、Web画面で編集すること
+  NotifyMailSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: notify-mail-sns-topic

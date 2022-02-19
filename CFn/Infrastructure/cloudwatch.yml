@@ -5,7 +5,7 @@ Parameters:
   ServiceName:
     Type: String
     ConstraintDescription: "service name"
-    Default: jupyter
+    Default: infra-sample
   LambdaArn:
     Type: 'String'
     ConstraintDescription: "lambda when cloudwatch event triggered"
@@ -24,7 +24,7 @@ Resources:
     Type: AWS::Events::Rule
     Properties:
       Name: !Sub ${ServiceName}-cloudwatch-rule-batch
-      ScheduleExpression: 'cron(0 1 * * * *)'
+      ScheduleExpression: 'cron(0 1 ? * 1-7 *)'
       State: ENABLED
       Targets:
          -
