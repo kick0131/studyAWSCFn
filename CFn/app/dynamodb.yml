@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: DynamoDB Crete
+Parameters:
+  TableName:
+    Type: String
+    Description: DynamoDB Table Name
+    Default: sampletable
+Resources:
+  DDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref TableName
+      AttributeDefinitions:
+        -
+          AttributeName: CreatedId
+          AttributeType: S
+      KeySchema:
+        -
+          AttributeName: CreatedId
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+Outputs:
+  DynamoDBTableName:
+    Value:
+      !Ref DDBTable
+    Description: DynamoDB Table Name
