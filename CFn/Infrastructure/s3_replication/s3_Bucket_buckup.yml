@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'disaster recovery bucket'
+
+Parameters:
+  Service:
+    Type: String
+  Stage:
+    Type: String
+
+Resources:
+  BackupS3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${Service}-${Stage}-s3-bakup
+      AccessControl: Private
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      # Glacier setting
+      LifecycleConfiguration:
+        Rules:
+          - Id: DynamoDBBackuptoGlacierRule
+            Status: Enabled
+            ExpirationInDays: 365
+            Transitions:
+              - TransitionInDays: 1
+                StorageClass: GLACIER
+
+Outputs:
+  BackupS3:
+    Value: !Ref BackupS3

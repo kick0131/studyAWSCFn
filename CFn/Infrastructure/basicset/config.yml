@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS Config
+
+Parameters:
+  Service:
+    Type: String
+    Default: sample
+  Stage:
+    Type: String
+    Default: dev
+  ConfigRoleArn:
+    Type: String
+  ConfigBucket:
+    Type: String
+
+Resources:
+  ConfigurationRecorder:
+    Type: AWS::Config::ConfigurationRecorder
+    Properties:
+      RecordingGroup:
+        AllSupported: true
+        IncludeGlobalResourceTypes: true
+      RoleARN: !Ref ConfigRoleArn
+  DeliveryChannel:
+    Type: AWS::Config::DeliveryChannel
+    Properties:
+      S3BucketName: !Ref ConfigBucket
+
+  # S3_BUCKET_PUBLIC_READ_PROHIBITED
+  ConfigRuleReadS3: 
+    Type: AWS::Config::ConfigRule
+    Properties:
+      ConfigRuleName: S3_BUCKET_PUBLIC_READ_PROHIBITED
+      Source: 
+        Owner: AWS
+        SourceIdentifier: S3_BUCKET_PUBLIC_READ_PROHIBITED
+      MaximumExecutionFrequency: TwentyFour_Hours
+    DependsOn: ConfigurationRecorder
+
+  # S3_BUCKET_PUBLIC_WRITE_PROHIBITED
+  ConfigRuleWriteS3: 
+    Type: AWS::Config::ConfigRule
+    Properties:
+      ConfigRuleName: S3_BUCKET_PUBLIC_WRITE_PROHIBITED
+      Source: 
+        Owner: AWS
+        SourceIdentifier: S3_BUCKET_PUBLIC_WRITE_PROHIBITED
+      MaximumExecutionFrequency: TwentyFour_Hours
+    DependsOn: ConfigurationRecorder

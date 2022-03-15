@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'replicate other region S3'
+
+Parameters:
+  Service:
+    Type: String
+  Stage:
+    Type: String
+  BackupBucketName:
+    Type: String
+
+Resources:
+  # IAM Role for S3 Replication access
+  IamRoleS3Replication:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${Service}-${Stage}-S3Replication-Role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - s3.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${Service}-${Stage}-s3-dynamodb
+      AccessControl: Private
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOnExpirationRule
+            Status: Enabled
+            ExpirationInDays: 365
+      ReplicationConfiguration: 
+        Role: !GetAtt IamRoleS3Replication.Arn
+        Rules: 
+          - Destination:
+              Bucket: !Sub arn:aws:s3:::${BackupBucketName}
+            Status: Enabled
+
+  # SystemsParameter for DynamoDB Bucket
+  SystemParameterS3Arn:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub /${Service}/S3BucketArn
+      Type: String
+      Value: !Sub ${S3Bucket.Arn}
+      Description: S3Bucket ARN
+  SystemParameterS3Name:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub /${Service}/S3BucketName
+      Type: String
+      Value: !Ref S3Bucket
+      Description: S3Bucket Name
+
+Outputs:
+  S3Bucket:
+    Value: !Ref S3Bucket

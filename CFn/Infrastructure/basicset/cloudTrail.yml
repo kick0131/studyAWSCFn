@@ -1,0 +1,21 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudTrail
+
+Parameters:
+  Service:
+    Type: String
+  Stage:
+    Type: String
+  CloudTrailBucket:
+    Type: String
+
+Resources:
+  CloudTrail:
+    Type: AWS::CloudTrail::Trail
+    Properties: 
+      EnableLogFileValidation: true
+      IncludeGlobalServiceEvents: true
+      IsLogging: true
+      IsMultiRegionTrail: true
+      S3BucketName: !Ref CloudTrailBucket
+      TrailName: !Sub ${Service}-${Stage}-s3-cloudtrail

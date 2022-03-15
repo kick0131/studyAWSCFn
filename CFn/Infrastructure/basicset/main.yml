@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'create multi resource template'
+
+Parameters:
+  Service:
+    Type: String
+    Default: sample
+  Stage:
+    Type: String
+    Default: dev
+  EnableGuardDutyDetector:
+    Type: String
+    AllowedValues:
+      - 'yes'
+      - 'no'
+    Description: if first setup GuardDuty set 'yes', if not 'no'.
+  SnsEndpointEmail:
+    Type: String
+
+
+Resources:
+
+  IamStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./iam.yml
+      Parameters:
+        Service: !Ref Service
+        Stage: !Ref Stage
+  CloudTrailStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./cloudTrail.yml
+      Parameters:
+        Service: !Ref Service
+        Stage: !Ref Stage
+        CloudTrailBucket: !Sub '{{resolve:ssm:/${Service}/S3BucketCloudtrail}}'
+  SnsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./sns.yml
+      Parameters:
+        Service: !Ref Service
+        Stage: !Ref Stage
+        SnsEndpointEmail: !Ref SnsEndpointEmail
+  GuardDutyStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./guardDuty.yml
+      Parameters:
+        Service: !Ref Service
+        Stage: !Ref Stage
+        SnsTopic: !GetAtt SnsStack.Outputs.TopicAlert
+        SnsTopicArn: !GetAtt SnsStack.Outputs.TopicAlertArn
+        EnableGuardDutyDetector: !Ref EnableGuardDutyDetector
+    DependsOn: SnsStack
+  ConfigStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./config.yml
+      Parameters:
+        Service: !Ref Service
+        Stage: !Ref Stage
+        ConfigRoleArn: !GetAtt IamStack.Outputs.RoleForConfigArn
+        ConfigBucket: !Sub '{{resolve:ssm:/${Service}/S3BucketConfig}}'
+  CloudWatchAlermStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./cloudWatchAlerm.yml
+      Parameters:
+        Service: !Ref Service
+        Stage: !Ref Stage
+        SnsArn: !GetAtt SnsStack.Outputs.TopicAlertArn
+        AccessLogBucket: !Sub '{{resolve:ssm:/${Service}/S3BucketAccessLog}}'

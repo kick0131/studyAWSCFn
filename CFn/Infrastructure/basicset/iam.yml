@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'IAM Stack'
+
+Parameters:
+  Service:
+    Type: String
+    Default: sample
+  Stage:
+    Type: String
+    Default: dev
+
+Resources:
+  # execute Lambda policy
+  LambdaBasePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      ManagedPolicyName: !Sub ${Service}-${Stage}-Execute-Lambda
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement: 
+          - Effect: Allow
+            Action:
+              - 'lambda:InvokeFunction'
+            Resource: '*'
+
+  # attach Lambda role
+  LambdaPolicy:
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName: !Sub ${Service}-${Stage}-DynamoDB-Role
+      AssumeRolePolicyDocument: 
+        Version: 2012-10-17
+        Statement: 
+          - Effect: Allow
+            Principal: 
+              Service:
+                - 'lambda.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaDynamoDBExecutionRole'
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole'
+        - !Ref LambdaBasePolicy
+
+  # for AWS Config
+  RoleForConfig:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${Service}-${Stage}-iam-role-config
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - 'config.amazonaws.com'
+                - 'ssm.amazonaws.com'
+            Action:
+                - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonSSMFullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonSNSFullAccess'
+        - 'arn:aws:iam::aws:policy/service-role/AWSConfigRole'
+    
+Outputs:
+  LambdaPolicyArn:
+    Value: !GetAtt LambdaPolicy.Arn
+    Export:
+      Name: !Sub ${Service}-${Stage}-LambdaPolicyArn
+  RoleForConfigArn:
+    Value: !GetAtt RoleForConfig.Arn
+    Export:
+      Name: !Sub ${Service}-${Stage}-RoleForConfigArn
+  

@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: SNS
+
+Parameters:
+  Service:
+    Type: String
+    Default: sample
+  Stage:
+    Type: String
+    Default: dev
+  SnsEndpointEmail:
+    Type: String
+    Description: expect email address
+
+Resources:
+  TopicAlert:
+    Type: AWS::SNS::Topic
+    Properties: 
+      DisplayName: !Sub ${Service}-${Stage}-sns-alert
+      Subscription: 
+        -  Endpoint: !Ref SnsEndpointEmail
+           Protocol: email
+      TopicName: !Sub ${Service}-${Stage}-sns-alert
+
+Outputs:
+  TopicAlertArn:
+    Value: !Ref TopicAlert
+  TopicAlert:
+    Value: !GetAtt TopicAlert.TopicName

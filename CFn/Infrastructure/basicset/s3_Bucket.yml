@@ -1,0 +1,129 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 bucket
+
+Parameters:
+  Service:
+    Type: String
+  Stage:
+    Type: String
+
+Resources:
+  S3BucketAccessLog:
+    Type: AWS::S3::Bucket
+    DependsOn: IamRoleS3Replication
+    Properties:
+      BucketName: !Sub ${Service}-${Stage}-s3-accesslog
+      AccessControl: LogDeliveryWrite
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: false
+      LifecycleConfiguration:
+        Rules:
+          - Status: Enabled
+            ExpirationInDays: '365'
+  S3BucketCloudtrail:
+    Type: AWS::S3::Bucket
+    DependsOn: S3BucketAccessLog
+    Properties:
+      BucketName: !Sub ${Service}-${Stage}-s3-cloudtrail
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Status: Enabled
+            ExpirationInDays: '365'
+  # Cloudtrail BucketPolicy
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3BucketCloudtrail
+      PolicyDocument:
+        Statement:
+          - Sid: AWSCloudTrailAclCheck
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Action: s3:GetBucketAcl
+            Resource: !Sub ${S3BucketCloudtrail.Arn}
+          - Sid: AWSCloudTrailWrite
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Action: s3:PutObject
+            Resource: !Sub ${S3BucketCloudtrail.Arn}/AWSLogs/${AWS::AccountId}/*
+            Condition:
+              StringEquals:
+                's3:x-amz-acl': bucket-owner-full-control
+  S3BucketConfig:
+    Type: AWS::S3::Bucket
+    DependsOn: S3BucketAccessLog
+    Properties:
+      BucketName: !Sub ${Service}-${Stage}-s3-config
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Status: Enabled
+            ExpirationInDays: '365'
+      LoggingConfiguration:
+        DestinationBucketName: !Ref S3BucketAccessLog
+        LogFilePrefix: !Sub ${Service}-${Stage}-s3-config
+  # SystemsParameter
+  S3BucketAccessLogArn:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub /${Service}/S3BucketAccessLogArn
+      Type: String
+      Value: !Sub ${S3BucketAccessLog.Arn}
+      Description: S3BucketAccessLogArn
+  S3BucketAccessLogName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub /${Service}/S3BucketAccessLog
+      Type: String
+      Value: !Ref S3BucketAccessLog
+      Description: S3BucketAccessLog
+  S3BucketCloudtrailArn:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub /${Service}/S3BucketCloudtrailArn
+      Type: String
+      Value: !Sub ${S3BucketCloudtrail.Arn}
+      Description: S3BucketCloudtrailArn
+  S3BucketCloudtrailName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub /${Service}/S3BucketCloudtrail
+      Type: String
+      Value: !Ref S3BucketCloudtrail
+      Description: S3BucketCloudtrail
+  S3BucketConfigArn:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub /${Service}/S3BucketConfigArn
+      Type: String
+      Value: !Sub ${S3BucketConfig.Arn}
+      Description: S3BucketConfigArn
+  S3BucketConfigName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub /${Service}/S3BucketConfig
+      Type: String
+      Value: !Ref S3BucketConfig
+      Description: S3BucketConfig
+
+Outputs:
+  S3BucketCloudtrail:
+    Value: !Ref S3BucketCloudtrail
+  S3BucketConfig:
+    Value: !Ref S3BucketConfig

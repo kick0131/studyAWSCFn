@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: GuardDuty
+
+Parameters:
+  Service:
+    Type: String
+    Default: sample
+  Stage:
+    Type: String
+    Default: dev
+  SnsTopic:
+    Type: String
+  SnsTopicArn:
+    Type: String
+  EnableGuardDutyDetector:
+    Type: String
+    Default: 'no'
+    AllowedValues:
+      - 'yes'
+      - 'no'
+    Description: if first setup GuardDuty set "yes", if not "no".
+
+Conditions:
+  EnableGuardDutyDetector: !Equals [ !Ref EnableGuardDutyDetector, 'yes' ]
+
+Resources:
+  GuardDutyDetector:
+    Condition: EnableGuardDutyDetector
+    Type: AWS::GuardDuty::Detector
+    Properties: 
+      Enable: true
+  GurdDutyFindingEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub '${Service}-${Stage}-cloudwatch-rule-guardduty'
+      EventPattern:
+        source:
+          - 'aws.guardduty'
+        detail-type:
+          - 'GurdDuty Finding'
+      State: ENABLED
+      Targets:
+         -
+          Id: !Ref SnsTopic
+          Arn: !Ref SnsTopicArn
+
+Outputs:
+  GurdDutyFindingEventRule:
+    Value: !Ref GurdDutyFindingEventRule
+    Export:
+      Name: !Sub '${Service}-${Stage}-cloudwatch-rule-guardduty'

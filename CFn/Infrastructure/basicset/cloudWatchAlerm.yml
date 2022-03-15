@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudWatchEvent
+
+Parameters:
+  Service:
+    Type: String
+    Default: sample
+  Stage:
+    Type: String
+    Default: dev
+  SnsArn:
+    Type: String
+  AccessLogBucket:
+    Type: String
+
+Resources:
+  # 5XXError
+  S3logs5xxErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref SnsArn
+      AlarmName: !Sub ${Service}-${Stage}-cloudwatch-alarm-s3logs3-5xxerrors
+      ComparisonOperator: GreaterThanThreshold
+      Statistic: Sum
+      EvaluationPeriods: 1
+      MetricName: 5xxErrors
+      Namespace: AWS/S3
+      Dimensions:
+        - Name: BucketName
+          Value: !Sub ${AccessLogBucket}
+        - Name: FilterId
+          Value: !Sub ${AccessLogBucket}-id
+      Period: 300
+      Threshold: 0
+      TreatMissingData: notBreaching
+
+  # 4XXError
+  S3logs4xxErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref SnsArn
+      AlarmName: !Sub ${Service}-${Stage}-cloudwatch-alarm-s3logs-4xxerrors
+      ComparisonOperator: GreaterThanThreshold
+      Statistic: Sum
+      EvaluationPeriods: 1
+      MetricName: 4xxErrors
+      Namespace: AWS/S3
+      Dimensions:
+        - Name: BucketName
+          Value: !Sub ${AccessLogBucket}
+        - Name: FilterId
+          Value: !Sub ${AccessLogBucket}-id
+      Period: 300
+      Threshold: 0
+      TreatMissingData: notBreaching
+
+  # CloudWatchAlerm - Lambda(Errors)
+  LambdaConcurrenErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions: 
+        - !Ref SnsArn
+      AlarmName: !Sub ${Service}-${Stage}-cloudwatch-alarm-lambda-errors
+      ComparisonOperator: GreaterThanThreshold
+      Statistic: Sum
+      EvaluationPeriods: 1
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Period: 300
+      Threshold: 0
+      TreatMissingData: notBreaching
+
