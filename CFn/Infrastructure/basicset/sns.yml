@@ -21,6 +21,55 @@ Resources:
         -  Endpoint: !Ref SnsEndpointEmail
            Protocol: email
       TopicName: !Sub ${Service}-${Stage}-sns-alert
+  TopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      # Allow GuardDuty event
+      PolicyDocument: { 
+        "Version": "2012-10-17", 
+        "Statement": [
+          {
+            "Sid": "guardduty_policy",
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "events.amazonaws.com"
+            },
+            "Action": "sns:Publish",
+            "Resource": [
+              "Fn::Sub": "${TopicAlert}"
+            ]
+          },
+          {
+            "Sid": "__default_statement_ID",
+            "Effect": "Allow",
+            "Principal": {
+              "AWS": "*"
+            },
+            "Action": [
+              "SNS:GetTopicAttributes",
+              "SNS:SetTopicAttributes",
+              "SNS:AddPermission",
+              "SNS:RemovePermission",
+              "SNS:DeleteTopic",
+              "SNS:Subscribe",
+              "SNS:ListSubscriptionsByTopic",
+              "SNS:Publish"
+            ],
+            "Resource": [
+              "Fn::Sub": "${TopicAlert}"
+            ],
+            "Condition": {
+              "StringEquals": {
+                "AWS:SourceOwner": [
+                  "Fn::Sub": "${AWS::AccountId}"
+                ]
+              }
+            }
+          }
+        ]
+      }
+      Topics: 
+        - !Ref TopicAlert
 
 Outputs:
   TopicAlertArn:
