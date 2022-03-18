@@ -1,0 +1,16 @@
+{
+  "UserPoolId": "ap-northeast-1_XXXXXXXX",
+  "ProviderName": "LINE",
+  "ProviderType": "OIDC",
+  "ProviderDetails": {
+      "client_id": "testline",
+      "client_secret": "abcdefg",
+      "attributes_request_method": "POST",
+      "oidc_issuer": "https://access.line.me",
+      "authorize_scopes": "profile email openid",
+      "authorize_url": "https://access.line.me/oauth2/v2.1/authorize",
+      "token_url": "https://api.line.me/oauth2/v2.1/token",
+      "attributes_url": "https://api.line.me/v2/profile",
+      "jwks_uri": "https://api.line.me/oauth2/v2.1/verify"
+  }
+}
