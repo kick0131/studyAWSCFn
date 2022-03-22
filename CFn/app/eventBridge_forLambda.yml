@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: call lambda lotate
+
+Parameters:
+  Service:
+    Type: String
+  Stage:
+    Type: String
+  LambdaArn:
+    Type: String
+  CronExpression:
+    Type: String
+    Description: Such as "cron(0/15 * * * ? *)"
+
+Resources:
+  LambdaExecuteEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub ${Service}-${Stage}-cloudwatch-rule-lambda
+      ScheduleExpression: !Ref CronExpression
+      State: ENABLED
+      Targets:
+         -
+          Id: !Sub ${Service}-${Stage}-cloudwatch-rule-lambda
+          Arn: !Ref LambdaArn
+  LambdaEvent:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LambdaArn
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt LambdaExecuteEventRule.Arn
