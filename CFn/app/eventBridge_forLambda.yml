@@ -4,8 +4,10 @@ Description: call lambda lotate
 Parameters:
   Service:
     Type: String
+    Default: sample
   Stage:
     Type: String
+    Default: dev
   LambdaArn:
     Type: String
   CronExpression:
